@@ -33,5 +33,5 @@ pip install -r requirements.txt
 Запустить проект:
 
 ```
-python manage.py runserver
+python weather_bot.py
 ```
