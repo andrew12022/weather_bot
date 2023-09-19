@@ -47,15 +47,21 @@ pip install -r requirements.txt
 
 Создайте файл `.env` в той же директории, что и `weather_bot.py`, и добавьте свои токены API:
 
-```
+```.env
 WEATHER_TOKEN=ваш_токен_openweathermap_api
 BOT_TOKEN=ваш_токен_telegram_bot
 ```
 
 Измените переменную `CITY` в файле `weather_bot.py`, чтобы указать желаемое местоположение:
 
-```
+```python
 CITY = 'ваш_город'
+```
+
+Также не забудьте изменить строчку № 92 в файле `weather_bot.py`, чтобы данные о времени отображались правильно:
+
+```python
+current_timezone = pytz.timezone('Europe/ваш_регион_или_город')
 ```
 
 Запустите бота с помощью следующей команды:
