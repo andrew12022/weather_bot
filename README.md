@@ -84,4 +84,4 @@ WeatherBot включает обработку ошибок для потенц�
 - [python-telegram-bot](https://pypi.org/project/python-telegram-bot/): обертка на Python для Telegram Bot API.
 
 ## Автор
-- [andrew12022]
+- [andrew12022](https://github.com/andrew12022)
