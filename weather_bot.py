@@ -2,10 +2,10 @@ import datetime
 import logging
 import os
 import sys
+from http import HTTPStatus
 
 import requests
 
-from telegram import ReplyKeyboardMarkup
 from telegram.ext import CommandHandler, Updater
 
 from dotenv import load_dotenv
@@ -50,6 +50,7 @@ def get_new_weather():
         'units': 'metric',
         'lang': 'ru',
     }
+    logger.debug(f'Начало отправления запроса к API: {ENDPOINT}')
     try:
         response = requests.get(
             ENDPOINT,
@@ -57,11 +58,19 @@ def get_new_weather():
         )
     except Exception as error:
         error_message = (
-            f'Произошел сбой при запросе к API: {error}'
+            f'Произошел сбой при запросе: {error}.'
+            f'Запрос выглядел таким образом: {ENDPOINT}, {params}.'
         )
         logger.error(error_message)
     else:
-        logger.debug('Запрос был успешно отправлен')
+        logger.debug('Ответ на запрос успешно отправлен')
+    if response.status_code == HTTPStatus.OK:
+        logger.debug('Успешный ответ от API')
+    else:
+        logger.error(
+            'Неуспешный ответ от API. '
+            f'Код ответа: {response.status_code}'
+        )
     response = response.json()
     main = response.get('main')
     wind = response.get('wind')
@@ -96,25 +105,36 @@ def get_new_weather():
 
 def new_weather(update, context):
     """."""
+    username = update.effective_user.username
+    logger.info(f'Получена команда /weather от пользователя: {username}')
     chat = update.effective_chat
-    context.bot.send_message(chat.id, get_new_weather())
+    try:
+        context.bot.send_message(chat.id, get_new_weather())
+    except Exception as error:
+        logger.error(f'Ошибка при отправке сообщения в Telegram: {error}')
+    else:
+        logger.info(f'Сообщение успешно отправлено пользователю: {username}')
 
 
 def start_up(update, context):
     """."""
+    username = update.effective_user.username
+    logger.info(f'Получена команда /start от пользователя: {username}')
     chat = update.effective_chat
-    name = update.message.chat.first_name
-    button = ReplyKeyboardMarkup([['/weather']], resize_keyboard=True)
-    context.bot.send_message(
-        chat_id=chat.id,
-        text=(f'Привет, {name}.\n'
-              'Я WeatherBot и могу сказать какая погода на улице сейчас.\n'
-              'Она будет выведена после этого сообщения.\n'
-              'Чтобы заново запросить информацию о погоде '
-              'нужно всего лишь написать команду: /weather'),
-        reply_markup=button,
-    )
-    context.bot.send_message(chat.id, get_new_weather())
+    try:
+        context.bot.send_message(
+            chat_id=chat.id,
+            text=(f'Привет, {username}.\n'
+                  'Я WeatherBot и могу сказать какая погода на улице сейчас.\n'
+                  'Она будет выведена после этого сообщения.\n'
+                  'Чтобы заново запросить информацию о погоде '
+                  'нужно всего лишь написать команду: /weather'),
+        )
+        context.bot.send_message(chat.id, get_new_weather())
+    except Exception as error:
+        logger.error(f'Ошибка при отправке сообщения в Telegram: {error}')
+    else:
+        logger.info(f'Сообщение успешно отправлено пользователю: {username}')
 
 
 def main():
@@ -123,12 +143,10 @@ def main():
         error_message = 'Программа была остановлена из за отсутствия токенов'
         logger.critical(error_message)
         sys.exit()
-
+    logger.info('WeatherBot начал работать')
     updater = Updater(token=BOT_TOKEN)
-
     updater.dispatcher.add_handler(CommandHandler('start', start_up))
     updater.dispatcher.add_handler(CommandHandler('weather', new_weather))
-
     updater.start_polling()
     updater.idle()
 
@@ -139,3 +157,4 @@ if __name__ == '__main__':
         format='%(asctime)s - [%(levelname)s] - %(message)s',
     )
     main()
+    logger.info('WeatherBot закончил работать')
