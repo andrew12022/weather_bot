@@ -15,7 +15,7 @@ WeatherBot - это бот для Telegram, написанный на Python, к
 
 ## Установка:
 
-Клонировать репозиторий и перейти в него в командной строке:
+Клонируйте репозиторий и перейдите в него в командной строке:
 
 ```
 git clone git@github.com:andrew12022/weather_bot.git
@@ -25,7 +25,7 @@ git clone git@github.com:andrew12022/weather_bot.git
 cd weather_bot
 ```
 
-Cоздать и активировать виртуальное окружение:
+Cоздайте и активируйте виртуальное окружение:
 
 ```
 python -m venv venv
@@ -35,7 +35,7 @@ python -m venv venv
 source venv/Scripts/activate
 ```
 
-Установить зависимости из файла requirements.txt:
+Установите зависимости из файла requirements.txt:
 
 ```
 python -m pip install --upgrade pip
