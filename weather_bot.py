@@ -5,6 +5,7 @@ import sys
 from http import HTTPStatus
 from urllib.error import HTTPError
 
+import pytz
 import requests
 from dotenv import load_dotenv
 from telegram.ext import CommandHandler, Updater
@@ -88,10 +89,19 @@ def process_weather_data(response):
     pressure = main.get('pressure')
     speed = wind.get('speed')
 
+    current_timezone = pytz.timezone('Europe/Samara')
     format = "%H:%M"
-    now = datetime.datetime.now().strftime(format)
-    sunrise = datetime.datetime.fromtimestamp(sys_info.get('sunrise'))
-    sunset = datetime.datetime.fromtimestamp(sys_info.get('sunset'))
+    now = datetime.datetime.now(current_timezone).strftime(format)
+    sunrise = datetime.datetime.fromtimestamp(
+        sys_info.get('sunrise'),
+        tz=pytz.UTC,
+    )
+    sunset = datetime.datetime.fromtimestamp(
+        sys_info.get('sunset'),
+        tz=pytz.UTC,
+    )
+    sunrise_current = sunrise.astimezone(current_timezone).strftime(format)
+    sunset_current = sunset.astimezone(current_timezone).strftime(format)
     length = sunset - sunrise
     hours = length.seconds // 3600
     minutes = (length.seconds % 3600) // 60
@@ -105,8 +115,8 @@ def process_weather_data(response):
         f'Влажность: {humidity}%\n'
         f'Ветер: {int(speed)} м/с\n'
         f'Давление: {pressure} мм рт. ст.\n'
-        f'Восход солнца: {sunrise.strftime(format)}\n'
-        f'Закат солнца: {sunset.strftime(format)}\n'
+        f'Восход солнца: {sunrise_current}\n'
+        f'Закат солнца: {sunset_current}\n'
         f'Продолжительность дня: {hours} часов {minutes} минут'
     )
 
