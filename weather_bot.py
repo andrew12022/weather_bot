@@ -8,7 +8,7 @@ from urllib.error import HTTPError
 import pytz
 import requests
 from dotenv import load_dotenv
-from telegram.ext import CommandHandler, Updater
+from telegram.ext import Application, CommandHandler
 
 from exceptions import TelegramAPIError, WeatherAPIError
 
@@ -135,28 +135,29 @@ def get_new_weather():
         logger.error(error_message)
 
 
-def new_weather(update, context):
+async def new_weather(update, context):
     """Обработка команды /weather."""
     username = update.effective_user.username
     logger.info(f'Получена команда /weather от пользователя: {username}')
     chat = update.effective_chat
+    weather_message = get_new_weather()
 
     try:
-        context.bot.send_message(chat.id, get_new_weather())
+        await context.bot.send_message(chat.id, weather_message)
     except Exception as error:
         logger.error(f'Ошибка при отправке сообщения в Telegram: {error}')
     else:
         logger.info(f'Сообщение успешно отправлено пользователю: {username}')
 
 
-def start_up(update, context):
+async def start_up(update, context):
     """Обработка команды /start."""
     username = update.effective_user.username
     logger.info(f'Получена команда /start от пользователя: {username}')
     chat = update.effective_chat
 
     try:
-        context.bot.send_message(
+        await context.bot.send_message(
             chat_id=chat.id,
             text=(f'Привет, {username}.\n'
                   'Я WeatherBot и могу сказать какая погода на улице сейчас.\n'
@@ -164,7 +165,8 @@ def start_up(update, context):
                   'Чтобы заново запросить информацию о погоде '
                   'нужно всего лишь написать команду: /weather'),
         )
-        context.bot.send_message(chat.id, get_new_weather())
+        weather_message = get_new_weather()
+        await context.bot.send_message(chat.id, weather_message)
     except Exception as error:
         logger.error(f'Ошибка при отправке сообщения в Telegram: {error}')
     else:
@@ -178,11 +180,10 @@ def main():
         logger.critical(error_message)
         sys.exit()
     logger.info('WeatherBot начал работать')
-    updater = Updater(token=BOT_TOKEN)
-    updater.dispatcher.add_handler(CommandHandler('start', start_up))
-    updater.dispatcher.add_handler(CommandHandler('weather', new_weather))
-    updater.start_polling()
-    updater.idle()
+    application = Application.builder().token(BOT_TOKEN).build()
+    application.add_handler(CommandHandler('start', start_up))
+    application.add_handler(CommandHandler('weather', new_weather))
+    application.run_polling()
 
 
 if __name__ == '__main__':
